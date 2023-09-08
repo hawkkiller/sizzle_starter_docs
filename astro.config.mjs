@@ -13,7 +13,7 @@ export default defineConfig({
     }
   ),
   integrations: [starlight({
-    title: 'Sizzle Starter',
+    title: 'Sizzle Starter 🦾 ',
     social: {
       github: 'https://github.com/hawkkiller/sizzle_starter'
     },
@@ -32,6 +32,16 @@ export default defineConfig({
           }
         ]
       }
+    ],
+    head: [
+      {
+        tag: 'meta',
+        attrs: { property: 'og:image', content: site + 'og.jpg?v=1' },
+      },
+      {
+        tag: 'meta',
+        attrs: { property: 'twitter:image', content: site + 'og.jpg?v=1' },
+      },
     ]
   }), markdoc()]
 });
