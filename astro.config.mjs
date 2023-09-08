@@ -4,8 +4,11 @@ import starlight from '@astrojs/starlight';
 import markdoc from "@astrojs/markdoc";
 import vercelStatic from '@astrojs/vercel/static';
 
+const site = "https://sizzle.lazebny.io/"
+
 // https://astro.build/config
 export default defineConfig({
+  site,
   output: "static",
   adapter: vercelStatic(
     {
@@ -42,6 +45,6 @@ export default defineConfig({
         tag: 'meta',
         attrs: { property: 'twitter:image', content: site + 'og.jpg?v=1' },
       },
-    ]
+    ],
   }), markdoc()]
 });
