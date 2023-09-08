@@ -17,7 +17,7 @@ export default defineConfig({
     social: {
       github: 'https://github.com/hawkkiller/sizzle_starter'
     },
-    favicon: "./public/favicon.svg",
+    favicon: "/favicon.svg",
     logo: {
       light: './src/assets/light-logo.svg',
       dark: './src/assets/dark-logo.svg'
