@@ -16,7 +16,7 @@ export default defineConfig({
     }
   ),
   integrations: [starlight({
-    title: 'Sizzle Starter 🦾 Production-ready template',
+    title: 'Sizzle Starter',
     social: {
       github: 'https://github.com/hawkkiller/sizzle_starter'
     },
