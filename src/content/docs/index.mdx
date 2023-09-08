@@ -1,0 +1,44 @@
+---
+title: Welcome to Sizzle Starter
+description: Production ready template for flutter applications.
+template: splash
+hero:
+  tagline: Production ready template for flutter applications.
+  image:
+    file: ../../assets/mascot.webp
+  actions:
+    - text: Get Started
+      link: /introduction
+      icon: right-arrow
+      variant: primary
+    - text: Sizzle Starter GitHub
+      link: https://github.com/hawkkiller/sizzle_starter
+      icon: external
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Features
+
+<CardGrid stagger>
+	<Card title="Fast installation" icon="rocket">
+		Clone the repo, rename and you are ready to go.
+	</Card>
+	<Card title="Continuous Integration" icon="setting">
+		Starter comes with CI/CD configuration for GitHub Actions.
+	</Card>
+	<Card title="Production Ready" icon="approve-check-circle">
+		There are a few examples of full-blown applications built with Sizzle Starter.
+		Starter comes with many features out of the box: initialization, theming,
+		localization, DI, state management.
+	</Card>
+	<Card title="Well-documented" icon="puzzle">
+		Each public structure in code has a detailed description.
+		Then, this site is a comprehensive guide to the project.
+		There is also a [readme](https://github.com/hawkkiller/sizzle_starter/blob/main/README.md)
+		description of the project structure.
+	</Card>
+	<Card title="Read the docs" icon="open-book">
+		Learn more in [the Sizzle Starter Docs](guides/example).
+	</Card>
+</CardGrid>
