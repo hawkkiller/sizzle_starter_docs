@@ -27,11 +27,15 @@ export default defineConfig({
     },
     sidebar: [
       {
-        label: 'Get Started',
+        label: 'Start Here',
         items: [
           {
             label: 'Introduction',
             link: '/introduction'
+          },
+          {
+            label: 'Getting Started',
+            link: '/getting-started'
           }
         ]
       }
