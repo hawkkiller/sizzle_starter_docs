@@ -1,0 +1,138 @@
+---
+title: Dependencies
+description: Sizzle Starter has a well-defined initialization process. This guide will help you understand it.
+---
+
+## Introduction
+
+Initialization and injection of dependencies are fundamental aspects of an application.
+The approach chosen essentially determines the architectural decisions and affects
+all areas of development, including testing, debugging, and design.
+
+### Idea
+
+There are numerous ways to initialize dependencies in Flutter.
+The typical approaches employed by the Flutter community include:
+
+- Provider package
+- Riverpod package
+- GetIt package (Service Locator)
+
+I believe that all of these approaches are detrimental to the project
+in the long run and I wanted to implement a solution that is predictable,
+maintainable, testable, with a low learning curve and boilerplate.
+
+I ended up with a solution based on the following ideas:
+
+- Constructor dependency injection
+- Dependency Container
+
+### Constructor Dependency Injection
+
+```dart
+class UserRepository {
+    final UserDao _userDao;
+
+    UserRepository(this._userDao);
+}
+```
+
+Constructor dependency injection is a technique for managing dependencies
+in software development. It involves injecting dependencies into
+a class via its constructor. This makes it very easy to see which dependencies
+are required to create an instance of the class.
+
+In contrast to the well-known service locator pattern, constructor dependency
+injection does not hide the dependencies of the module. This is immensely helpful
+when writing tests for your module, as it allows you to directly mock the dependencies.
+
+Moreover, constructor dependency injection likely results in a more modular
+design of your application. This is because you are forced to think about the
+dependencies of your module and the separation of concerns.
+
+### Dependency Container
+
+```dart
+abstract class Dependencies {
+    abstract final Database database;
+    abstract final UserRepository userRepository;
+    abstract final ThemeRepository themeRepository;
+
+    /// Convert mutable dependencies to immutable.
+    Dependencies freeze();
+}
+```
+
+A dependency container is a class that contains all the dependencies of an application.
+It is a single source of truth for all the dependencies, which makes it easy to
+manage and troubleshoot them.
+
+In Sizzle Starter, there is an abstract class named `Dependencies` and two implementations:
+
+- `DependenciesMutable` - used while initializing the dependencies.
+This is because the dependencies may need to be changed during initialization,
+such as when they are being configured.
+
+- `DependenciesImmutable` - used in the application after the initialization.
+This is because the dependencies should be immutable after initialization,
+to avoid unexpected behavior.
+
+## Dependencies Initialization
+
+In terms of Sizzle Starter, process of `dependencies initialization` refers to
+the process of filling the `DependenciesMutable` with the dependencies and
+returning the `DependenciesImmutable` instance.
+
+**Sizzle Starter** comes with a predefined approach for these purposes.
+There are two main components: InitializationProcessor, InitializationSteps.
+
+### Initialization steps
+
+Initialization steps are the building blocks of the initialization process.
+The step is just an entry in a map where key is a unique identifier of the step
+and value is a function contains logic that should be executed.
+Ideally, each step is responsible for initializing a single dependency.
+
+```dart
+mixin InitializationSteps {
+    final initializationSteps = <String, InitializationStep>{
+        'Database': (progress) {
+            final database = await openDatabase(...);
+
+            progress.dependencies.database = database;
+        }
+        'AuthRepository': (progress) {
+            final authDao = AuthDao(progress.dependencies.database);
+            final authRepository = AuthRepository(authDao);
+
+            progress.dependencies.authRepository = authRepository;
+        },
+    };
+}
+```
+
+### Initialization processor
+
+Steps are being executed by the `InitializationProcessor` in a row, so
+the order of the steps is important and step may use the result
+of previous ones.
+
+It works by executing the steps one by one and passing the `InitializationProgress`
+object to each step. This object contains the current state of the
+initialization process.
+
+### Dependencies Scope
+
+The `InitializationProcessor` returns the initialized result
+(basically instance of `DependenciesImmutable`). At this moment,
+it is needed to somehow make this container available to consumers.
+For example, we need `LocaleRepository` to initialize the `LocaleBloc`.
+
+The solution is to use the `DependenciesScope` class. It is a simple
+inherited widget that contains the `DependenciesImmutable` instance and
+provides it to down the elements tree.
+
+When, you want to access the dependencies, you just need to use the
+`DependenciesScope.of(context)` method and pass the dependencies to the
+constructor of the class adhering to the Constructor Dependency Injection
+principle.

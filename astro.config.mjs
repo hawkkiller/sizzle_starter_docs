@@ -37,7 +37,13 @@ export default defineConfig({
             label: 'Getting Started',
             link: '/getting-started'
           }
-        ]
+        ],
+      },
+      {
+        label: 'Essentials',
+        autogenerate: {
+          directory: 'essentials',
+        }
       }
     ],
     head: [
