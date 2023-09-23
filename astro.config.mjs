@@ -2,14 +2,14 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
 import markdoc from "@astrojs/markdoc";
-import vercel from '@astrojs/vercel/serverless';
+import vercel from '@astrojs/vercel/static';
 
 const site = "https://sizzle.lazebny.io/"
 
 // https://astro.build/config
 export default defineConfig({
   site,
-  output: "server",
+  output: "static",
   
   adapter: vercel(
     {
@@ -19,8 +19,7 @@ export default defineConfig({
       speedInsights: {
         enabled: true,
       },
-      imageService: true,
-      devImageService: 'squoosh'
+      imageService: true
     }
   ),
   integrations: [starlight({
