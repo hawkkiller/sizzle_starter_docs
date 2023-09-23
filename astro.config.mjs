@@ -9,7 +9,7 @@ const site = "https://sizzle.lazebny.io/"
 // https://astro.build/config
 export default defineConfig({
   site,
-  output: "static",
+  output: "server",
   
   adapter: vercel(
     {
