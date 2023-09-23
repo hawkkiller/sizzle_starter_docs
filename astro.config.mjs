@@ -2,7 +2,7 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
 import markdoc from "@astrojs/markdoc";
-import vercelStatic from '@astrojs/vercel/static';
+import vercel from '@astrojs/vercel/serverless';
 
 const site = "https://sizzle.lazebny.io/"
 
@@ -10,9 +10,17 @@ const site = "https://sizzle.lazebny.io/"
 export default defineConfig({
   site,
   output: "static",
-  adapter: vercelStatic(
+  
+  adapter: vercel(
     {
-      analytics: true,
+      webAnalytics: {
+        enabled: true,
+      },
+      speedInsights: {
+        enabled: true,
+      },
+      imageService: true,
+      devImageService: 'squoosh'
     }
   ),
   integrations: [starlight({
