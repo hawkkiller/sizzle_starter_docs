@@ -51,6 +51,16 @@ export default defineConfig({
         autogenerate: {
           directory: 'essentials',
         }
+      },
+      {
+        label: 'Roadmap',
+        collapsed: true,
+        items: [
+          {
+            label: 'Roadmap',
+            link: '/roadmap'
+          }
+        ]
       }
     ],
     head: [
