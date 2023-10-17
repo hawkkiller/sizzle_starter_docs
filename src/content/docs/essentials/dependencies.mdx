@@ -67,21 +67,11 @@ A dependency container is a class that contains all the dependencies of an appli
 It is a single source of truth for all the dependencies, which makes it easy to
 manage and troubleshoot them.
 
-In Sizzle Starter, there is an abstract class named `Dependencies` and two implementations:
-
-- `DependenciesMutable` - used while initializing the dependencies.
-This is because the dependencies may need to be changed during initialization,
-such as when they are being configured.
-
-- `DependenciesImmutable` - used in the application after the initialization.
-This is because the dependencies should be immutable after initialization,
-to avoid unexpected behavior.
-
 ## Dependencies Initialization
 
 In terms of Sizzle Starter, process of `dependencies initialization` refers to
 the process of filling the `DependenciesMutable` with the dependencies and
-returning the `DependenciesImmutable` instance.
+returning the instance.
 
 **Sizzle Starter** comes with a predefined approach for these purposes.
 There are two main components: InitializationProcessor, InitializationSteps.
@@ -124,7 +114,7 @@ initialization process.
 ### Dependencies Scope
 
 The `InitializationProcessor` returns the initialized result
-(basically instance of `DependenciesImmutable`). At this moment,
+(basically instance of `DependenciesMutable`). At this moment,
 it is needed to somehow make this container available to consumers.
 For example, we need `LocaleRepository` to initialize the `LocaleBloc`.
 
