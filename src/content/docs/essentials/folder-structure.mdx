@@ -1,0 +1,107 @@
+---
+
+title: "Folder Structure"
+description: "Еhe optimal file and folder organization within the Sizzle Starter architecture."
+---
+
+When it comes to software development, the organization of files and folders is paramount.
+A structured and intuitive directory can be the difference between a smoothly operating project and a tangled mess.
+In Sizzle Starter, we've honed a systematic approach to project organization.
+If you're uncertain about file placements or inter-feature dependencies, this guide is for you.
+
+## Folder Hierarchy: A Bird's-Eye View
+
+Here’s the overarching structure:
+
+```text
+.
+└── src - Root of all source code
+    ├── core - Bedrock utilities and configurations
+    │   ├── assets - Static and generated asset files
+    │   │   └── generated
+    │   ├── localization - Language files and auto-generated translations
+    │   │   └── translations
+    │   └── utils - General purpose utility functions
+    └── feature - Modular feature containers
+        └── feature1
+            ├── data - Repositories, data sources, etc.
+            ├── bloc - Business logic components
+            ├── model - Data Transfer Objects, Entities, and more
+            └── widget - UI components like screens and widgets
+    main.dart - The application's entry point
+```
+
+### Diving Deeper into Core
+
+The `core` directory is the heart of your application.
+It houses utilities and configurations that provide functionality across multiple features. Here are some examples:
+
+- **Mixins and Extensions:** Commonly used functions or properties that can be mixed into classes.
+- **Rest Client:** Standardized configurations and methods for API requests.
+- **BLoC Observer:** Debugging and monitoring tool for the BLoC pattern.
+
+### Dissecting Feature
+
+A feature-based architecture, as employed by Sizzle Starter,
+encapsulates related functionalities within self-contained modules,
+streamlining development and maintenance.
+
+Advantages of such an approach include:
+
+- **Maintainability:** Features are compartmentalized, making it easier to locate and update code.
+    It becomes easier to work in teams, as developers can focus on their respective features.
+- **Predictability:** Features are self-contained, and it is clear where to find specific code.
+    This makes it easier to onboard new developers.
+
+Let’s inspect a couple of these:
+
+```text
+.
+└── feature
+    ├── cart
+    │   ├── data
+    │       ├── cart_data_source.dart
+    │   │   └── cart_repository.dart
+    │   ├── bloc
+    │   │   └── cart_bloc.dart
+    │   ├── model
+    │   │   └── cart.dart
+    │   └── widget
+    │       └── cart_screen.dart
+    └── authentication
+        ├── data
+        │   ├── authentication_data_source.dart
+        │   └── authentication_repository.dart
+        ├── bloc
+        │   └── authentication_bloc.dart
+        ├── model
+        │   └── user.dart
+        └── widget
+            └── authentication_screen.dart
+```
+
+These modules are highly compartmentalized:
+
+- **Data:** The backend of the feature-encompassing repositories, data sources, and other similar entities.
+- **BLoC:** Houses the business logic components, mediating between data and Widget.
+- **Model:** Defines the structure of your data, from DTOs to entities.
+- **Widget:** Contains all components pertinent to the feature.
+
+:::tip
+When a feature requires entities or logic from another feature,
+it's tempting to relocate that code. Resist the urge!
+Instead, import the necessary components.
+This retains the modularity and intent of the original structure.
+:::
+
+:::danger
+Avoid impulsively moving files to the `core` directory.
+It's not a dumping ground.
+
+Remember: just because multiple features use a file doesn't
+automatically qualify it for the `core` category.
+:::
+
+In conclusion, while the Sizzle Starter structure is rigorous,
+it’s designed for clarity and scalability. By understanding and adhering to its principles,
+you'll be better equipped to build and maintain large-scale applications.
