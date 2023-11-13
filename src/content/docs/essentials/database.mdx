@@ -1,0 +1,165 @@
+---
+title: Database
+description: Sqllite3 database
+--- 
+
+
+In almost any project we deal with data, often in substantial quantities. In such cases, it is important to decide on the tools that will be used. We need that the data is reliably stored and that we can access it without dancing around the fire with tambourines. When working with a cross-platform, it is also important to consider that the user can access data on different devices. In all of this, the lightweight fighter [SQLite](#why-sqlite) will come to our aid, who will be "trained" and "guide" on the right path by [Drift library](#what-is-drift).
+
+## Why SQLite?
+
+SQLite is selected for data processing due:
+
+- **Lightweight:** It is a compact library that is easy to deploy and does not require any external dependencies or configuration.
+
+- **Reliability:** Highly reliable, as it is extensively tested and used in production by a large number of applications.
+
+- **Сross-platform:** Compatibility across diverse devices makes it versatile for deployment on various devices, which is important when working with a multi-platform framework such as
+     Flutter as it allows for seamless integration between different platforms. 
+
+- **Data Analysis:** Efficient for analyzing large datasets using SQL commands, making it a choice for bioinformatics research.
+
+- **Cache for Enterprise Data:** Acts as a cache for enterprise content, reducing latency and network load.
+
+- **Data Transfer Format:** Serves as a compact, cross-platform container for transferring content between systems.
+
+More about SQLite can be found [here](https://www.sqlite.org/whentouse.html).
+## What is Drift?
+
+Drift is a robust database library designed for Dart and Flutter applications. It empowers developers with advanced features such as type-safe SQL queries, database verification, and seamless migrations. Drift leverages a builder and command-line tooling that operates during compile-time, ensuring efficient and error-resistant database interactions in Dart and Flutter projects.
+
+ **How to use Drift?**
+    To start working with data, the first step is to create a table.
+
+        ### Defining SQL tables
+            To define a table, we need to create a class that extends Table. The class name will be the name of the table. The fields of the class will be the columns of the table. The type of the field will be the type of the column.
+
+            ```dart
+                class Spendings extends Table {
+                  IntColumn get id => integer().autoIncrement()();
+                  RealColumn get price => real().withDefault(const Constant(0.0))();
+                  TextColumn get title => text()();
+                  TextColumn get currency => text().nullable()();
+                  DateTimeColumn get date => dateTime()();
+                  BlobColumn get receiptImage => blob().nullable()();
+                }
+            ```
+            detailed description of defining tables can be found [here](https://drift.simonbinder.eu/docs/getting-started/advanced_dart_tables/)
+        
+        ### Data source and repositorie  
+            When we have defined a table, we need to create a [data source](/essentials/architecture/#data-source) and [repository](/essentials/architecture/#repository) for it. 
+            
+
+            The data source will be used to read and write data to the table. 
+            To create a data source, we need to create a class that extends DatabaseAccessor. The class name will be the name of the data source. The first type argument will be the type of the database. The second type argument will be the type of the table. The constructor of the class will take a database as an argument. The super constructor will take the database and the table as arguments.
+
+            ```dart
+                part 'spendings_dao.g.dart';
+
+                abstract interface class SpendingsDataSource {
+                  Future<List<TableSpendings>> getAllSpendings();
+                  Future<void> insertSpending(TableSpendings spending);
+                  Future<void> deleteSpending(TableSpendings spending);
+                  Future<void> updateSpending(TableSpendings spending);
+                }
+
+                @DriftAccessor(tables: [Spendings])
+                class SpendingsDao extends DatabaseAccessor<AppDatabase, Spendings> with _$SpendingsDaoMixin implements SpendingsDataSource {
+                  SpendingsDao(AppDatabase db) : super(db);
+                  ...
+                }
+            ```
+
+            The repository will be used as a layer between the data from our table and the business logic of our application.
+
+            ```dart
+                abstract class SpendingsRepository {
+                  Future<List<Spendings>> getAllSpendings();
+                  Future<void> insertSpending(Spendings spending);
+                  Future<void> deleteSpending(Spendings spending);
+                  Future<void> updateSpending(Spendings spending);
+                }
+
+                class SpendingsRepositoryImpl implements SpendingsRepository {
+                  final SpendingsDataSource _spendingsDataSource;
+
+                  SpendingsRepositoryImpl(this._spendingsDataSource);
+                  ...
+                }
+            ```
+
+
+        ### Writing data
+            After we have created a table and data source for our expenses, we can write data,
+            ```dart
+                await database.into(spendings).insert(
+                  SpendingsCompanion.insert(
+                    price: Value(3.9),
+                    title: 'Coffee',
+                    currency: Value('USD'),
+                    date: DateTime.now(),
+                    receiptImage: Value(Uint8List.fromList([1, 2, 3, 4])),
+                  ),
+                );
+            ```
+            delete data,
+            ```dart
+                await database.delete(
+                    spendings,
+                    where: (tbl) => tbl.id.equals(1),
+                ).go();
+            ```
+            or update data.
+            ```dart
+                await database.update(
+                    spendings,
+                    where: (tbl) => tbl.id.equals(1),
+                    set: SpendingsCompanion(
+                        price: Value(2.9),
+                        title: 'Coffee',
+                        currency: Value('USD'),
+                        date: DateTime.now(),
+                        receiptImage: Value(Uint8List.fromList([1, 2, 3, 4])),
+                    ),
+                ).go();
+            ```
+            more about writing data can be found [here](https://drift.simonbinder.eu/docs/dart-api/writes/)
+        ### Reading data
+            To read data, we need to create a query that will return the data we need.
+            ```dart
+                final allSpendings = await database.select(spendings).get();
+            ```
+            We can filter the data,
+            ```dart
+                final query = await database.select(spendings)
+                    ..where((tbl) => tbl.id.equals(1));
+            ```
+            sort the data,
+            ```dart
+                final query = await database.select(spendings)
+                    ..orderBy(
+                        (tbl) => OrderingTerm(expression: tbl.price, mode: OrderingMode.desc),
+                    );
+            ```
+            or limit the data.
+            ```dart
+                final query = await database.select(spendings)
+                    ..limit(10);
+            ```
+            more about reading data can be found [here](https://drift.simonbinder.eu/docs/dart-api/reads/).
+
+            
+        ### Migrations
+            It's often challenging to foresee precisely what data should be in the table right away. In the future, new fields or tables may emerge, and for such changes, a migration tool exists.
+            
+            
+            [Migration API](https://drift.simonbinder.eu/docs/migrations/)
+
+
+        This is basic information about working with Drift. More detailed information can be found [here](https://drift.simonbinder.eu/docs/getting-started/).
+
+## Executors
+In Drift, an executor is a component responsible for handling and executing database queries. Drift employs different executors based on the platform to ensure optimal performance and compatibility. These platform-specific executors are designed to handle database interactions in a way that aligns with the nuances and requirements of each particular platform, providing efficient and seamless functionality across various devices.
+
+#### Whats the deal with package?
+    When moving the database into a separate package with Drift and Flutter, it also simplifies working with code generation. The generated code, which creates classes for interacting with the database based on your Drift files, becomes part of this standalone package. This contributes to better project organization, reduces dependencies, and enhances maintainability.
