@@ -70,7 +70,7 @@ manage and troubleshoot them.
 ## Dependencies Initialization
 
 In terms of Sizzle Starter, process of `dependencies initialization` refers to
-the process of filling the `DependenciesMutable` with the dependencies and
+the process of filling the `Dependencies` with the dependencies and
 returning the instance.
 
 **Sizzle Starter** comes with a predefined approach for these purposes.
@@ -114,12 +114,12 @@ initialization process.
 ### Dependencies Scope
 
 The `InitializationProcessor` returns the initialized result
-(basically instance of `DependenciesMutable`). At this moment,
+(basically instance of `Dependencies`). At this moment,
 it is needed to somehow make this container available to consumers.
 For example, we need `LocaleRepository` to initialize the `LocaleBloc`.
 
 The solution is to use the `DependenciesScope` class. It is a simple
-inherited widget that contains the `DependenciesImmutable` instance and
+inherited widget that contains the `Dependencieч` instance and
 provides it to down the elements tree.
 
 When, you want to access the dependencies, you just need to use the
