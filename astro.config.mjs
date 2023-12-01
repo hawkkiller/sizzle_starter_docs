@@ -63,18 +63,8 @@ export default defineConfig({
                 {
                   label: "Define Tables",
                   link: "storage/database/define-tables/",
-                }
-              ]
-            },
-          ],
-        },
-        {
-          label: "Roadmap",
-          collapsed: true,
-          items: [
-            {
-              label: "Roadmap",
-              link: "/roadmap",
+                },
+              ],
             },
           ],
         },
