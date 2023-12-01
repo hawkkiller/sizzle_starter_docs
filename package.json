@@ -9,6 +9,13 @@
     "preview": "astro preview",
     "astro": "astro"
   },
+  "devDependencies": {
+    "@types/hast": "^3.0.3",
+    "hast-util-from-html": "^1.0.2",
+    "hast-util-to-string": "^2.0.0",
+    "hastscript": "^7.2.0",
+    "rehype": "^12.0.1"
+  },
   "dependencies": {
     "@astrojs/starlight": "^0.9.1",
     "@astrojs/vercel": "^5.0.1",

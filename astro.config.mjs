@@ -1,7 +1,6 @@
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 
-import markdoc from "@astrojs/markdoc";
 import vercel from "@astrojs/vercel/static";
 
 const site = "https://sizzle.lazebny.io/";
@@ -10,7 +9,6 @@ const site = "https://sizzle.lazebny.io/";
 export default defineConfig({
   site,
   output: "static",
-
   adapter: vercel({
     webAnalytics: {
       enabled: true,
@@ -28,8 +26,9 @@ export default defineConfig({
       },
       favicon: "/favicon.svg",
       logo: {
-        light: "./src/assets/light-logo.svg",
-        dark: "./src/assets/dark-logo.svg",
+        light: "./src/assets/logo-light.svg",
+        dark: "./src/assets/logo-dark.svg",
+        replacesTitle: true,
       },
       sidebar: [
         {
