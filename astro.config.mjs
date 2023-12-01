@@ -55,9 +55,16 @@ export default defineConfig({
           items: [
             {
               label: "Local Database",
-              autogenerate: {
-                directory: "storage/database",
-              },
+              items: [
+                {
+                  label: "About the local database",
+                  link: "storage/database/about/",
+                },
+                {
+                  label: "Define Tables",
+                  link: "storage/database/define-tables/",
+                }
+              ]
             },
           ],
         },
