@@ -17,9 +17,9 @@
     "rehype": "^12.0.1"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.9.1",
-    "@astrojs/vercel": "^5.0.1",
-    "astro": "^3.0.6",
+    "@astrojs/starlight": "^0.14.0",
+    "@astrojs/vercel": "^6.0.0",
+    "astro": "^4.0.1",
     "sharp": "^0.32.5"
   }
 }

@@ -1,15 +1,17 @@
 ---
-title: "Access Data using DAOs"
+title: "Accessing Data"
 description: "Learn how to create DAOs and use them to access data."
 ---
 
-Data Access Objects (DAOs) encapsulate the logic for reading and writing data to and from the database.
-In Drift, DAOs are classes that can access a database and execute queries.
+import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-## Creating DAOs
+The class marked with the `@DriftDatabase` annotation is used to access data in the database.
+It contains a set of tables and convenient methods to interact with them.
 
-In the layered architecture of Sizzle Starter, DAOs reside in the data layer.
-Below is a simple DAO with a method to add a new todo and a method to return a stream of all todos:
+## Data Access Objects
+
+DAOs are the classes that have an access to the database and provide methods for accessing data.
+They reside in the `data` layer and are called from repositories.
 
 ```dart
 final class TodosDao {
@@ -75,7 +77,7 @@ await database.into(database.users).insertOnConflictUpdate(
 If you want to insert multiple rows at once, use the `insertAll` method:
 
 ```dart
-// INSERT INTO "users" ("id", "name") VALUES 
+// INSERT INTO "users" ("id", "name") VALUES
 // (1, John Doe), (2, Jane Doe)
 await database.batch(
   (batch) => batch.insertAll(database.users, [
@@ -160,3 +162,105 @@ Drift also provides `getSingle` method that will fail if there is more than one 
 Generally, this method should be avoided.
 :::
 
+## Clauses
+
+Clauses are used to filter, sort and limit the result set.
+The following code retrieves all users with id greater than 1 and sorts them by name:
+
+```dart
+// SELECT * FROM "users" WHERE "id" > 1 ORDER BY "name" ASC;
+await (database.select(database.users)
+      ..where((tbl) => tbl.id.isBiggerThan(1))
+      ..orderBy((tbl) => OrderingTerm(expression: tbl.name)))
+    .get();
+```
+
+### Where
+
+The `where` clause is used to filter the result set.
+The following code deletes all expired objects from the database:
+
+```dart
+// DELETE FROM "objects" WHERE "expires_at" < strftime('%s', 'now');
+await (database.delete(database.objects)..where((tbl) => tbl.expiresAt.isSmallerThan(DateTime.now()))).go();
+```
+
+### Order By
+
+The `orderBy` clause is used to sort the result set.
+The following code retrieves all users from the database and sorts them by name:
+
+```dart
+// Imagine that there are two users in the database: John Doe and Jane Doe.
+// The following code will return Jane Doe first, because the name is sorted in descending order.
+// SELECT * FROM "users" ORDER BY "name" ASC;
+await (database.select(database.users)..orderBy((tbl) => OrderingTerm(expression: tbl.name))).get();
+```
+
+### Limit
+
+The `limit` clause is used to limit the rows in the result set.
+The following code retrieves only one user from the database:
+
+```dart
+// SELECT * FROM "users" LIMIT 1;
+await (database.select(database.users)..limit(1)).get();
+```
+
+### Offset
+
+The `offset` clause is used to skip a number of rows in the result set.
+The following code retrieves all posts from the database, after skipping the first 10:
+
+```dart
+// SELECT * FROM "posts" OFFSET 10;
+await (database.select(database.posts)..offset(10)).get();
+```
+
+Offset is often used with limit to implement pagination.
+
+## Advanced Operations
+
+Advanced operations are used to perform more complex operations on the database.
+They are not generated automatically and should be written manually.
+
+### One-to-many Relationships
+
+One-to-many relationships are used to model a parent-child relationship between two tables.
+For example, a user can have multiple posts. This looks like this:
+
+<Tabs>
+  <TabItem label="SQL">
+
+```sql
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+);
+
+CREATE TABLE IF NOT EXISTS posts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+)
+```
+
+  </TabItem>
+  <TabItem label="Dart">
+
+```dart
+class Users extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+}
+
+class Posts extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get userId => integer().references(Users, #id)();
+  TextColumn get title => text()();
+}
+```
+
+  </TabItem>
+</Tabs>

@@ -3,11 +3,37 @@ title: "Define Tables"
 description: "Learn how to define tables with Dart and SQL code."
 ---
 
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
 There are two ways to define a table in Drift - using Dart code or using SQL code.
 Dart code is easier, but SQL code is more powerful and decouples the table definition from the Dart code.
 Generally, SQL code is preferred.
 
 See how to define tables using Dart code and SQL code below.
+
+<Tabs>
+  <TabItem label="SQL">
+SQL code is defined in `.drift` files. The following example defines the same table as above:
+
+```sql
+CREATE TABLE todos(
+  -- The identifier for this todo.
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  -- The title of this todo.
+  title TEXT NOT NULL,
+  -- The content of this todo.
+  body TEXT NOT NULL,
+  -- Category of this todo.
+  category INTEGER,
+  -- Created at timestamp.
+  created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+  -- Updated at timestamp.
+  updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+);
+```
+
+  </TabItem>
+  <TabItem label="Dart">
 
 ```dart
 /// Todos table definition
@@ -30,26 +56,21 @@ final class TodosTable extends Table {
   /// Updated at timestamp.
   DateTimeColumn get updatedAt => dateTime().nullable()();
 }
+
 ```
 
-SQL code is defined in `.drift` files. The following example defines the same table as above:
-
-```sql
-CREATE TABLE todos(
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  title TEXT NOT NULL,
-  body TEXT NOT NULL,
-  category INTEGER,
-  created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
-  updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')) CHECK(updated_at >= created_at),
-);
-```
+  </TabItem>
+</Tabs>
 
 To make code generation work, you must point to the `.drift` file or dart `Table` in the `@DriftDatabase` annotation:
 
 ```dart
-@DriftDatabase(tables: [TodosTable]); // or
-@DriftDatabase(include: {'todos.drift'});
+@DriftDatabase(
+  // For dart tables
+  tables: [TodosTable],
+  // For SQL files
+  include: {'todos.drift'}
+);
 ```
 
 ## Column types
@@ -74,8 +95,7 @@ Drift supports the following keys:
 Primary key is a column or a set of columns that uniquely identify a row in a table.
 It is used to enforce uniqueness of rows and to reference rows from other tables.
 
-Drift automatically defines a primary key if you use
-`autoIncrement()`:
+Drift automatically defines a primary key if you use `autoIncrement()`:
 
 ```dart
 IntColumn get id => integer().autoIncrement()();
@@ -83,20 +103,32 @@ IntColumn get id => integer().autoIncrement()();
 
 If you want to define a primary key manually:
 
-```dart
-// Override primaryKey in table
-@override
-Set<Column<Object>> get primaryKey => {id, ... };
-```
-
-SQL code:
+<Tabs>
+  <TabItem label="SQL">
 
 ```sql
 CREATE TABLE todos(
+  -- The identifier for this todo.
   id INTEGER AUTOINCREMENT,
   PRIMARY KEY(id, ...)
 );
 ```
+
+  </TabItem>
+  <TabItem label="Dart">
+
+```dart
+final class TodosTable extends Table {
+  /// The identifier for this todo.
+  IntColumn get id => integer().autoIncrement()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+```
+
+  </TabItem>
+</Tabs>
 
 ### Foreign Key
 
@@ -105,18 +137,30 @@ The role of a foreign key is to enforce referential integrity within the databas
 
 To reference a column from another table, use `references`:
 
-```dart
-IntColumn get categoryId => integer().nullable().references(categories, #id)();
-```
-
-SQL code:
+<Tabs>
+  <TabItem label="SQL">
 
 ```sql
 CREATE TABLE todos(
-  ...
-  category INTEGER REFERENCES categories(id)
+  -- The category of this todo that references the id of the category.
+  category INTEGER NOT NULL,
+  FOREIGN KEY(category) REFERENCES categories(id)
 );
 ```
+
+  </TabItem>
+  <TabItem label="Dart">
+
+```dart
+final class TodosTable extends Table {
+  /// The category of this todo that references the id of the category.
+  IntColumn get categoryId => integer().nullable().references(categories, #id)();
+}
+
+```
+
+  </TabItem>
+</Tabs>
 
 ## Modifiers
 
@@ -126,90 +170,139 @@ Modifiers are used to define constraints on columns. Drift supports the followin
 
 If no value is specified for a column when inserting a row, the database automatically uses the column's default value.
 
-To define a default value, use `withDefault`:
-
-```dart
-TextColumn get title => text().withDefault(const Constant('Untitled'))();
-```
-
-SQL code:
+<Tabs>
+  <TabItem label="SQL">
 
 ```sql
 CREATE TABLE todos(
-  ...
+  -- The title of this todo (default value is 'Untitled').
   title TEXT NOT NULL DEFAULT 'Untitled'
 );
 ```
 
-### Nullable columns
-
-Some columns may not have a value. To define a nullable column, use `nullable`:
+  </TabItem>
+  <TabItem label="Dart">
 
 ```dart
-IntColumn get category => integer().nullable()();
+final class TodosTable extends Table {
+  /// The title of this todo (default value is 'Untitled').
+  TextColumn get title => text().withDefault(const Constant('Untitled'))();
+}
 ```
 
-SQL code:
+  </TabItem>
+</Tabs>
+
+### Nullable columns
+
+Some columns may not have a value, so they should be marked as nullable.
+
+<Tabs>
+  <TabItem label="SQL">
 
 ```sql
 CREATE TABLE todos(
-  ...
-  category INTEGER
+  -- Columns are null by default, so this is not necessary.
+  -- category INTEGER is the same as category INTEGER NULL
+  category INTEGER NULL
 );
 ```
+
+  </TabItem>
+  <TabItem label="Dart">
+
+```dart
+final class TodosTable extends Table {
+  /// The category of this todo (nullable).
+  IntColumn get category => integer().nullable()();
+}
+```
+
+  </TabItem>
+</Tabs>
 
 ### Auto-incrementing columns
 
 Auto-incrementing columns are used to automatically generate a unique value for each new row.
 To define an auto-incrementing column, use `autoIncrement`:
 
-```dart
-IntColumn get id => integer().autoIncrement()();
-```
-
-SQL code:
+<Tabs>
+  <TabItem label="SQL">
 
 ```sql
 CREATE TABLE todos(
+  -- The identifier for this todo with auto-incrementing.
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  ...
 );
 ```
+
+  </TabItem>
+  <TabItem label="Dart">
+
+```dart
+final class TodosTable extends Table {
+  /// The identifier for this todo with auto-incrementing.
+  IntColumn get id => integer().autoIncrement()();
+}
+```
+
+  </TabItem>
+</Tabs>
 
 ### Length constraints
 
 To define a length constraint, use `withLength`:
 
-```dart
-TextColumn get title => text().withLength(min: 6, max: 32)();
-```
-
-SQL code:
+<Tabs>
+  <TabItem label="SQL">
 
 ```sql
 CREATE TABLE todos(
-  ...
+  -- The title of this todo with length constraints.
   title TEXT NOT NULL CHECK(LENGTH(title) >= 6 AND LENGTH(title) <= 32)
 );
 ```
+
+  </TabItem>
+  <TabItem label="Dart">
+
+```dart
+final class TodosTable extends Table {
+  /// The title of this todo with length constraints.
+  TextColumn get title => text().withLength(min: 6, max: 32)();
+}
+```
+
+  </TabItem>
+</Tabs>
 
 ### Check constraints
 
 Check constraints are used to enforce domain integrity.
 For example, to ensure that the price of a product is greater than 0 you may use:
 
-```dart
-IntColumn get price => integer().check(price.isBiggerThan(const Constant(0)))()
-```
-
-SQL code:
+<Tabs>
+  <TabItem label="SQL">
 
 ```sql
 CREATE TABLE todos(
-  ...
+  -- The price of this todo (greater than 0).
   price INTEGER NOT NULL CHECK(price > 0)
 );
 ```
+
+  </TabItem>
+  <TabItem label="Dart">
+
+```dart
+final class TodosTable extends Table {
+  /// The price of this todo (greater than 0).
+  IntColumn get price => integer().check(price.isBiggerThan(const Constant(0)))();
+}
+```
+
+  </TabItem>
+</Tabs>
 
 ## Indexes
 
@@ -265,36 +358,8 @@ This means each primary key value in one table relates to at most one record in 
 
 Consider the following code that defines a one-to-one relationship between `Persons` and `Passports`:
 
-```dart
-/// Person table definition
-final class PersonTable extends Table {
-  /// The identifier for this person.
-  IntColumn get id => integer().autoIncrement()();
-
-  /// The name of this person.
-  TextColumn get name => text()();
-
-  /// The date of birth of this person.
-  DateTimeColumn get dateOfBirth => dateTime()();
-}
-
-/// Passport table definition
-final class PassportTable extends Table {
-  /// The identifier for this passport.
-  IntColumn get id => integer().autoIncrement()();
-
-  /// The issue date of this passport.
-  DateTimeColumn get issueDate => dateTime()();
-
-  /// The expiry date of this passport.
-  DateTimeColumn get expiryDate => dateTime()();
-
-  /// The person this passport belongs to.
-  IntColumn get personId => integer().references(PersonTable, #id)();
-}
-```
-
-SQL code:
+<Tabs>
+  <TabItem label="SQL">
 
 ```sql
 -- Create the Person table
@@ -314,39 +379,37 @@ CREATE TABLE passport (
 );
 ```
 
+  </TabItem>
+  <TabItem label="Dart">
+
+```dart
+/// Person table definition
+final class PersonTable extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  DateTimeColumn get dateOfBirth => dateTime()();
+}
+
+/// Passport table definition
+final class PassportTable extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  DateTimeColumn get issueDate => dateTime()();
+  DateTimeColumn get expiryDate => dateTime()();
+  IntColumn get personId => integer().references(PersonTable, #id)();
+}
+```
+
+  </TabItem>
+</Tabs>
+
 ### One-to-many
 
 In a one-to-many relationship between two tables, a row in one table can have multiple matching rows in the other table.
 
 Consider the following code that defines one-to-many relationship between `Customers` and `Orders`:
 
-```dart
-/// Customer table definition
-final class CustomerTable extends Table {
-  /// The identifier for this customer.
-  IntColumn get id => integer().autoIncrement()();
-
-  /// The name of this customer.
-  TextColumn get name => text()();
-
-  /// The contact info of this customer.
-  TextColumn get contactInfo => text()();
-}
-
-/// Order table definition
-final class OrderTable extends Table {
-  /// The identifier for this order.
-  IntColumn get orderId => integer().autoIncrement()();
-
-  /// The date of this order.
-  DateTimeColumn get orderDate => dateTime()();
-
-  /// The customer this order belongs to.
-  IntColumn get customerId => integer().references(CustomerTable, #id)();
-}
-```
-
-SQL code:
+<Tabs>
+  <TabItem label="SQL">
 
 ```sql
 CREATE TABLE customers (
@@ -359,9 +422,31 @@ CREATE TABLE orders (
     order_id INTEGER PRIMARY KEY,
     order_date INTEGER,
     customer_id INTEGER,
-    FOREIGN KEY (customer_id) REFERENCES Customers(id)
+    FOREIGN KEY (customer_id) REFERENCES customers(id)
 );
 ```
+
+  </TabItem>
+  <TabItem label="Dart">
+
+```dart
+/// Customer table definition
+final class CustomerTable extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  TextColumn get contactInfo => text()();
+}
+
+/// Order table definition
+final class OrderTable extends Table {
+  IntColumn get orderId => integer().autoIncrement()();
+  DateTimeColumn get orderDate => dateTime()();
+  IntColumn get customerId => integer().references(CustomerTable, #id)();
+}
+```
+
+  </TabItem>
+</Tabs>
 
 ### Many-to-many
 
@@ -370,45 +455,8 @@ In a many-to-many relationship between two tables, a row in one table can have m
 Creating a many-to-many relationship involves three tables: two main tables and a junction table that links the records in the main tables.
 Let's consider an example with two entities, authors and books, where an author can write many books and a book can have many authors.
 
-```dart
-/// Author table definition
-final class AuthorTable extends Table {
-  /// The identifier for this author.
-  IntColumn get id => integer().autoIncrement()();
-
-  /// The name of this author.
-  TextColumn get name => text()();
-
-  /// The bio of this author.
-  TextColumn get bio => text()();
-}
-
-/// Book table definition
-final class BookTable extends Table {
-  /// The identifier for this book.
-  IntColumn get id => integer().autoIncrement()();
-
-  /// The title of this book.
-  TextColumn get title => text()();
-
-  /// The publication year of this book.
-  IntColumn get publicationYear => integer()();
-}
-
-/// AuthorBook table definition
-final class AuthorBookTable extends Table {
-  /// The author this book belongs to.
-  IntColumn get authorId => integer().references(AuthorTable, #id)();
-
-  /// The book this author wrote.
-  IntColumn get bookId => integer().references(BookTable, #id)();
-
-  @override
-  Set<Column> get primaryKey => {authorId, bookId};
-}
-```
-
-SQL code:
+<Tabs>
+  <TabItem label="SQL">
 
 ```sql
 -- Create the Authors table
@@ -434,6 +482,37 @@ CREATE TABLE author_book (
     FOREIGN KEY (book_id) REFERENCES books(book_id)
 );
 ```
+
+  </TabItem>
+  <TabItem label="Dart">
+
+```dart
+/// Author table definition
+final class AuthorTable extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  TextColumn get bio => text()();
+}
+
+/// Book table definition
+final class BookTable extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get title => text()();
+  IntColumn get publicationYear => integer()();
+}
+
+/// AuthorBook table definition
+final class AuthorBookTable extends Table {
+  IntColumn get authorId => integer().references(AuthorTable, #id)();
+  IntColumn get bookId => integer().references(BookTable, #id)();
+
+  @override
+  Set<Column> get primaryKey => {authorId, bookId};
+}
+```
+
+  </TabItem>
+</Tabs>
 
 ## Dart vs SQL
 
