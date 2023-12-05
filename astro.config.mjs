@@ -64,6 +64,10 @@ export default defineConfig({
                   label: "Define Tables",
                   link: "storage/database/define-tables/",
                 },
+                {
+                  label: "Accessing Data",
+                  link: "storage/database/accessing-data/",
+                }
               ],
             },
           ],

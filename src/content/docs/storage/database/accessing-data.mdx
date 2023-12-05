@@ -1,4 +1,162 @@
 ---
-title: 'Accessing Data using DAOs'
-description: 'Learn how to create DAOs and use them to access data.'
+title: "Access Data using DAOs"
+description: "Learn how to create DAOs and use them to access data."
 ---
+
+Data Access Objects (DAOs) encapsulate the logic for reading and writing data to and from the database.
+In Drift, DAOs are classes that can access a database and execute queries.
+
+## Creating DAOs
+
+In the layered architecture of Sizzle Starter, DAOs reside in the data layer.
+Below is a simple DAO with a method to add a new todo and a method to return a stream of all todos:
+
+```dart
+final class TodosDao {
+  /// The database this DAO uses.
+  final SizzleDatabase _db;
+
+  TodosDao(this._db);
+
+  final _controller = BehaviorSubject<List<Todo>>.seeded(const []);
+
+  /// Creates a new todo.
+  Future<void> createTodo(Todo todo) async {
+    await _db.into(todos).insert(TodoCompanion.insert(
+      title: todo.title,
+      category: todo.category,
+    ));
+
+    _controller.add(todo);
+  }
+
+  /// Provides a stream of all todos.
+  Stream<List<Todo>> watchTodos() => _controller.stream;
+}
+```
+
+Drift provides basic operations such as `delete`, `select`, `insert` to retrieve and manipulate data.
+If you need advanced SQL features such as joins, use the `customSelect` method or write raw SQL in .drift files.
+
+## Basic Operations
+
+Each table has a set of pre-defined methods that can be used to interact with data.
+I added SQL comments to the generated code to make it easier to understand what each method does.
+
+### Insert
+
+Insert method is used to insert a new row into the table.
+The following code inserts a new todo into the database:
+
+```dart
+// INSERT INTO users (id, name) VALUES (1, 'John Doe')
+await database.into(database.users).insert(
+  UsersCompanion.insert(
+    id: Value(1),
+    name: 'John Doe',
+  ),
+)
+```
+
+Sometimes, it is needed to upsert a row, i.e. insert a new row or update an existing row if it already exists.
+This can be done using the `insertOnConflictUpdate` method:
+
+```dart
+// INSERT INTO "users" ("id", "name") VALUES (1, John Doe)
+// ON CONFLICT("id") DO UPDATE SET "id" = 1, "name" = John Doe
+await database.into(database.users).insertOnConflictUpdate(
+  UsersCompanion.insert(
+    id: Value(1),
+    name: 'John Doe',
+  ),
+);
+```
+
+If you want to insert multiple rows at once, use the `insertAll` method:
+
+```dart
+// INSERT INTO "users" ("id", "name") VALUES 
+// (1, John Doe), (2, Jane Doe)
+await database.batch(
+  (batch) => batch.insertAll(database.users, [
+    UsersCompanion.insert(
+      id: Value(2),
+      name: 'John Doe',
+    ),
+    UsersCompanion.insert(
+      id: Value(3),
+      name: 'Jane Doe',
+    ),
+  ]),
+)
+```
+
+There is also equivalent `insertAllOnConflictUpdate` method for batch inserts.
+
+### Update
+
+Update method is used to update an existing row in the table.
+The following code updates the name of the user with id 1:
+
+```dart
+// UPDATE "users" SET "name" = Jane Doe, "created_at" = strftime('%s', 'now'), "updated_at" = strftime('%s', 'now')
+// WHERE "id" = 1;
+await database.update(database.users).replace(
+  UsersCompanion(
+    id: Value(1),
+    name: Value('Jane Doe'),
+  ),
+);
+```
+
+:::note
+The `replace` method will replace all columns in the row with the values provided in the companion.
+If you want to update only a subset of columns, use the `write` method.
+:::
+
+```dart
+await (database.update(database.users)..where((tbl) => tbl.id.equals(1))).write(
+  UsersCompanion(name: Value('Jane Doe')),
+);
+```
+
+Replace method updates only one row with the matching primary key.
+At the same time, `write` method updates multiple rows and should be preceded by a `where` clause, so that only the rows that match the condition are updated.
+
+### Delete
+
+Delete method is used to delete rows from the table.
+The following code deletes the user with id 1:
+
+```dart
+// DELETE FROM "users" WHERE "id" = 1;
+await (database.delete(database.users)..where((tbl) => tbl.id.equals(1))).go();
+```
+
+:::caution[Use where]
+If you omit the `where` clause, all rows in the table will be deleted.
+:::
+
+### Select
+
+Select method is used to retrieve data from the table.
+The following code retrieves all users from the database:
+
+```dart
+// SELECT * FROM "users";
+await database.select(database.users).get();
+```
+
+The `get` method returns a list of all rows in the table.
+If you want to retrieve only one row, use the `limit` modifier:
+
+```dart
+// SELECT * FROM "users" LIMIT 1;
+await (database.select(database.users)..limit(1)).get();
+```
+
+:::caution
+Drift also provides `getSingle` method that will fail if there is more than one or no rows in the result set.
+Generally, this method should be avoided.
+:::
+
