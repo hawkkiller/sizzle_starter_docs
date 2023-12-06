@@ -1,0 +1,130 @@
+---
+title: About the local database
+description: Database and Drift
+---
+
+Apps managing substantial structured data can significantly improve
+performance and user experience by storing this data locally. A key scenario is
+caching essential data, enabling users to access content offline when network
+connectivity is unavailable.
+
+Drift offers a sophisticated abstraction over SQLite, facilitating smooth
+database operations and leveraging SQLite's capabilities. Key advantages of
+using Drift include:
+
+- Dart APIs for defining tables, complex queries, and transactions.
+- User-friendly code generation that reduces the need for repetitive,
+  error-prone code.
+- Efficient and simplified paths for database migration.
+
+## Primary Components
+
+There are 3 primary components in Drift:
+
+- **Database**: The `@DriftDatabase` class manages the database, serving as the
+  primary gateway for your app to access its persistent data.
+- **Companions**: Classes that Drift generate for each table. They are used to
+  insert and update data in your database.
+- **Data access objects** (DAOs): classes that provide methods your app can use
+  to query, update, insert, and delete data in the database.
+
+The database class specifies the Tables used, so Drift can understand what
+tables this class is interested in. It gives full access to table(s) and
+generates code to query, insert, update, or delete data.
+
+## Sample Implementation
+
+This section presents a sample implementation of a Drift database with a
+single table and a single DAO.
+
+### Table
+
+The following code defines a `Todos` table. Each field represents a column
+in a `todos` table.
+
+```dart
+/// Todos table definition
+final class TodosTable extends Table {
+  /// The identifier for this todo.
+  IntColumn get id => integer().autoIncrement()();
+
+  /// The title of this todo.
+  TextColumn get title => text().withLength(min: 6, max: 32)();
+
+  /// The content of this todo.
+  TextColumn get content => text().named('body')();
+
+  /// Category of this todo.
+  IntColumn get category => integer().nullable()();
+}
+```
+
+### Data Access Object (DAO)
+
+The following code defines a `TodosDao`. `TodosDao` provides methods that
+perform database operations, such as `getTodosInCategory` and `getTodoById`.
+This Dao is later used by the repository to get data from the database.
+
+```dart
+class TodosDao {
+  TodosDao(AppDatabase db) : super(db);
+
+  /// Returns all todos in the given [category].
+  Future<List<Todo>> getTodosInCategory(int category) {
+    return (select(todos)..where((t) => t.category.equals(category))).get();
+  }
+
+  /// Inserts the given [todo] into the database.
+  Future insert(TodosCompanion todo) => into(todos).insert(todo);
+}
+```
+
+To learn more, about DAOs, see [Data Access Objects](/storage/database/accessing-data).
+
+### Database
+
+The following code defines an `AppDatabase` class. `AppDatabase` specifies
+the tables and DAOs that you want to include in the database.
+To satisfy the Drift requirements, you must:
+
+- Annotate your database class with `@DriftDatabase` and specify the tables
+  and DAOs that you want to include in the database.
+
+- Extend your database class from `_$NameOfDatabase` and implement the
+  `schemaVersion` getter.
+- Implement the `MigrationStrategy` getter to define the migration strategy
+  for the database in case of schema changes.
+
+This class may also be used to define **database migrations**. See the
+[Migrations](/storage/database/migrations) section for more information.
+
+```dart
+@DriftDatabase(tables: [TodosTable])
+class AppDatabase extends _$AppDatabase {
+  /// {@macro app_database}
+  AppDatabase() : super(createExecutor());
+
+  @override
+  int get schemaVersion => 1;
+}
+```
+
+### Usage
+
+After you have defined your table, DAO, and database, you can use them in your
+app. The following code shows how to use the `TodosDao` to insert a todo into
+the database.
+
+```dart
+final db = AppDatabase();
+final dao = TodosDao(db);
+final todo = TodosCompanion.insert(
+  title: 'Buy milk',
+  content: 'Go to the store and buy milk',
+  category: 0,
+);
+
+await dao.insert(todo);
+final todos = await dao.getTodosInCategory(0);
+print(todos); // [Todo(1, Buy milk, Go to the store and buy milk, 0)]
+```
