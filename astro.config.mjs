@@ -30,6 +30,9 @@ export default defineConfig({
         dark: "./src/assets/logo-dark.svg",
         replacesTitle: true,
       },
+      editLink: {
+        baseUrl: 'https://github.com/hawkkiller/sizzle_starter_docs/edit/main/'
+      },
       sidebar: [
         {
           label: "Start Here",
