@@ -3,6 +3,8 @@ title: About the local database
 description: Database and Drift
 ---
 
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
 Apps managing substantial structured data can significantly improve
 performance and user experience by storing this data locally. A key scenario is
 caching essential data, enabling users to access content offline when network
@@ -39,8 +41,24 @@ single table and a single DAO.
 
 ### Table
 
-The following code defines a `Todos` table. Each field represents a column
-in a `todos` table.
+The provided code defines a `Todos` table.
+Drift supports both Dart and SQL syntax for table definition.
+While both options are supported, **SQL** is generally considered the preferred choice due to its language independence, type safety, and enhanced capabilities for handling complex queries.
+
+<Tabs>
+  <TabItem label="SQL">
+
+```sql
+CREATE TABLE todos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  category INTEGER
+);
+```
+
+  </TabItem>
+  <TabItem label="Dart">
 
 ```dart
 /// Todos table definition
@@ -58,6 +76,9 @@ final class TodosTable extends Table {
   IntColumn get category => integer().nullable()();
 }
 ```
+
+  </TabItem>
+</Tabs>
 
 ### Data Access Object (DAO)
 
