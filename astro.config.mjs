@@ -24,10 +24,10 @@ export default defineConfig({
       social: {
         github: "https://github.com/hawkkiller/sizzle_starter",
       },
-      favicon: "/favicon.svg",
+      favicon: "/fav.svg",
       logo: {
-        light: "./src/assets/logo-light.svg",
-        dark: "./src/assets/logo-dark.svg",
+        light: "./src/assets/sizzlelogolight.svg",
+        dark: "./src/assets/sizzlelogodark.svg",
         replacesTitle: true,
       },
       editLink: {

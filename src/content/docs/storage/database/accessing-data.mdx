@@ -134,7 +134,7 @@ await database.transaction(() async {
 });
 ```
 
-### Drift Files
+### Drift Files ✨
 
 Define complex queries in `.drift` files.
 
@@ -148,10 +148,29 @@ postsPerUser:
 
 ```
 
-Usage in Dart code:
+The biggest advantage of drift files is that Drift can generate type-safe code for them.
+For example, the above drift file would generate the following code:
 
 ```dart
-final result = await database.postsPerUser().get(); // List<PostsPerUserResult>
+class PostsPerUserResult {
+  final String name;
+  final int postCount;
+  PostsPerUserResult({required this.name, required this.postCount});
+}
+```
+
+We can use it like this:
+
+```dart
+// List<PostsPerUserResult>
+final result = await database.postsPerUser().get();
+
+// Let's get the first result
+final firstPair = result.first;
+
+// firstPair is of type PostsPerUserResult
+print(firstPair.name); // John Doe
+print(firstPair.postCount); // 2
 ```
 
 ## DAOs (Data Access Objects)
