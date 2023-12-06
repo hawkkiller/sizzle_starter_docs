@@ -93,55 +93,27 @@ Drift is not an ORM, it is rather a query builder.
 
 ## Complex Queries
 
-Drift supports a wide range of SQL features, including joins, unions, subqueries, window functions, and more.
+Drift supports advanced SQL features like joins, subqueries, and transactions.
 
 ### Joins
 
-Joins are used to combine data from multiple tables.
-There are 4 main types of joins: `INNER`, `LEFT OUTER`, `RIGHT OUTER`, and `FULL OUTER`.
-
-Consider the following tables:
-
-```sql
-CREATE TABLE users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL
-);
-
-CREATE TABLE posts (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id INTEGER NOT NULL,
-  title TEXT NOT NULL,
-  body TEXT NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES users (id)
-);
-```
-
-This query returns rows that have matching values in both tables.
+Combine data from multiple tables using `INNER`, `LEFT OUTER`, `RIGHT OUTER`, `FULL OUTER` joins.
 
 ```dart
-// SELECT * FROM users INNER JOIN posts ON users.id = posts.user_id
 final result = await (database.select(database.users)
       .join([innerJoin(database.posts, database.posts.userId.equalsExp(database.users.id))]))
     .get();
 
-// Parse result to recognized tables
 final usersWithPosts = result.map((row) {
   return (row.readTable(database.users), row.readTable(database.posts));
 }).toList();
 ```
 
-As you can see, it is needed to parse the result to recognized tables.
-This is because the query returns a list of rows, and each row contains data from both tables.
-See [Drift Files](#drift-files) for an alternative way to write queries.
-
 ### Subqueries
 
-Subqueries are queries nested inside another query.
-This query returns all users who have posted at least once.
+Nested queries for complex conditions.
 
 ```dart
-// SELECT * FROM "users" WHERE "id" IN (SELECT "posts"."user_id" AS "posts.user_id" FROM "posts");
 await (database.select(database.users)
   ..where((tbl) => tbl.id.isInQuery(database.selectOnly(database.posts)..addColumns([database.posuserId]))))
 .get();
@@ -149,147 +121,42 @@ await (database.select(database.users)
 
 ### Transactions
 
-Transactions are used to ensure that a group of operations are executed atomically.
-If any operation fails, the entire transaction is rolled back.
-The following query inserts a user and a post in a single transaction:
+Ensures atomic operations.
 
 ```dart
-await database.transaction(
-  () async {
-    final userId = await database.into(database.users).insert(
-          UsersCompanion.insert(id: Value(1), name: 'John Doe'),
-        );
-    await database.into(database.posts).insert(
-          PostsCompanion.insert(userId: userId, title: 'Hello'),
-        );
-  },
-);
+await database.transaction(() async {
+  final userId = await database.into(database.users).insert(
+        UsersCompanion.insert(id: Value(1), name: 'John Doe'),
+      );
+  await database.into(database.posts).insert(
+        PostsCompanion.insert(userId: userId, title: 'Hello'),
+      );
+});
 ```
 
 ### Drift Files
 
-Instead of writing queries in Dart, you can also write them in `.drift` files.
-This is useful for complex queries that are difficult to write in Dart.
-
-:::tip
-Drift code generator parses queries, so that it creates the corresponding Dart code and return types.
-:::
-
-The following query returns the number of posts per user:
+Define complex queries in `.drift` files.
 
 ```sql
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
-    updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
-);
-
-CREATE TABLE IF NOT EXISTS posts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    title TEXT NOT NULL,
-    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
-    updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
-
+-- Drift file example
 postsPerUser:
   SELECT users.name, COUNT(posts.id) AS post_count
   FROM users
   LEFT JOIN posts ON posts.user_id = users.id
   GROUP BY users.id;
+
 ```
 
-Drift generates the following return type:
-
-```dart
-class PostsPerUserResult {
-  final String name;
-  final int postCount;
-  PostsPerUserResult({
-    required this.name,
-    required this.postCount,
-  });
-}
-```
-
-You can then use the query in your code:
+Usage in Dart code:
 
 ```dart
 final result = await database.postsPerUser().get(); // List<PostsPerUserResult>
-
-// No need to parse any code!
-print(result.first.name);
-print(result.first.postCount);
 ```
 
-Queries with many-to-many relationships are also much easier to maintain with raw SQL.
-Consider this simple model where authors have N books and books have N authors:
+## DAOs (Data Access Objects)
 
-```sql
--- Create the Authors table
-CREATE TABLE authors (
-    author_id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL,
-    bio TEXT
-);
--- Create the Books table
-CREATE TABLE books (
-    book_id INTEGER PRIMARY KEY,
-    title TEXT NOT NULL,
-    publication_year INTEGER
-);
--- Create the junction table to link authors and books
-CREATE TABLE author_book (
-    author_id INTEGER,
-    book_id INTEGER,
-    PRIMARY KEY (author_id, book_id),
-    FOREIGN KEY (author_id) REFERENCES authors(author_id),
-    FOREIGN KEY (book_id) REFERENCES books(book_id)
-);
-
-loadAuthorsAndBooks:
-  SELECT authors.name AS author_name, books.title AS book_title
-  FROM authors
-  JOIN author_book ON author_book.author_id = authors.author_id
-  JOIN books ON books.book_id = author_book.book_id
-  ORDER BY authors.name;
-```
-
-Drift generates the following return type:
-
-```dart
-class LoadAuthorsAndBooksResult {
-  final String authorName;
-  final String bookTitle;
-  LoadAuthorsAndBooksResult({
-    required this.authorName,
-    required this.bookTitle,
-  });
-}
-```
-
-You can then use the query in your code:
-
-```dart
-final result = await database.loadAuthorsAndBooks().get(); // List<LoadAuthorsAndBooksResult>
-
-// No need to parse any code!
-print(result.first.authorName);
-print(result.first.bookTitle);
-```
-
-:::tip
-Visit the [Drift Documentation](https://drift.simonbinder.eu/docs/sql-api/custom_queries/) for more information.
-:::
-
-## DAOs
-
-DAOs are classes that encapsulate database tables and provide methods for accessing data.
-DAOs reside at the lowest layer and act as data sources for repositories.
-
-Example of a DAO:
+Encapsulate database tables and operations.
 
 ```dart
 class SimpleDao {
@@ -305,3 +172,5 @@ class SimpleDao {
   }
 }
 ```
+
+For detailed documentation, visit [Drift Documentation](https://drift.simonbinder.eu/docs/sql-api/custom_queries/).
