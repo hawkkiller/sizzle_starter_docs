@@ -91,6 +91,40 @@ Drift is not an ORM, it is rather a query builder.
       .get();
   ```
 
+## Clauses
+
+Drift supports common SQL clauses like `WHERE`, `ORDER BY`, `OFFSET` and `LIMIT`.
+
+### WHERE
+
+Filter rows based on conditions.
+
+```dart
+// Select all users with id > 1
+await (database.select(database.users)..where((tbl) => tbl.id.isBiggerThan(Constant(1)))).get();
+```
+
+### ORDER BY
+
+Sort rows based on columns.
+
+```dart
+// Select all users and sort them by name
+await (database.select(database.users)..orderBy([(tbl) => OrderingTerm(expression: tbl.name)])).get();
+```
+
+### OFFSET and LIMIT
+
+Implement pagination.
+
+```dart
+// Select all users and limit the result to 20 rows
+await (database.select(database.users)..limit(20)).get();
+
+// Select all users and limit the result to 20 rows, starting from row 20
+await (database.select(database.users)..limit(20, offset: 20)).get();
+```
+
 ## Complex Queries
 
 Drift supports advanced SQL features like joins, subqueries, and transactions.
