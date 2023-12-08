@@ -240,7 +240,8 @@ For detailed documentation, visit [Drift Documentation](https://drift.simonbinde
 
 ## DAOs (Data Access Objects)
 
-Encapsulate database tables and operations.
+DAOs are classes that provide methods to perform database operations.
+Their purpose is to abstract the database layer from the rest of the application, much like data sources do for network requests in Sizzle architecture.
 
 ```dart
 class SimpleDao {
@@ -256,3 +257,5 @@ class SimpleDao {
   }
 }
 ```
+
+Drift also provides a way to generate DAOs. For more information, visit [Drift Documentation](https://drift.simonbinder.eu/docs/advanced-features/daos/).
