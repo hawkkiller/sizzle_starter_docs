@@ -125,6 +125,26 @@ await (database.select(database.users)..limit(20)).get();
 await (database.select(database.users)..limit(20, offset: 20)).get();
 ```
 
+### Like operator
+
+Filter rows based on patterns.
+
+```dart
+// Select all users with name starting with 'John'
+await (database.select(database.users)..where((tbl) => tbl.name.like('John%'))).get();
+```
+
+### Logical Operators
+
+Combine multiple conditions.
+
+```dart
+// Select all users with id > 1 and name starting with 'John'
+await (database.select(database.users)
+      ..where((tbl) => tbl.id.isBiggerThan(Constant(1)) & tbl.name.like('John%')))
+    .get();
+```
+
 ## Complex Queries
 
 Drift supports advanced SQL features like joins, subqueries, and transactions.
@@ -141,6 +161,15 @@ final result = await (database.select(database.users)
 final usersWithPosts = result.map((row) {
   return (row.readTable(database.users), row.readTable(database.posts));
 }).toList();
+```
+
+### Group By
+
+Group rows based on columns.
+
+```dart
+// Select all users and group them by name
+await (database.select(database.users)..groupBy([database.users.name])).get();
 ```
 
 ### Subqueries
