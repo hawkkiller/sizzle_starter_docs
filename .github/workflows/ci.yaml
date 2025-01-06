@@ -9,6 +9,8 @@ jobs:
       deployments: write
     steps:
       - uses: actions/checkout@v4
+      - name: Get Dependencies
+        run: npm install
       - name: Build Astro site
         run: npm run build
       - name: Deploy
