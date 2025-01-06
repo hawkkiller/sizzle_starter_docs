@@ -1,22 +1,12 @@
-import { defineConfig } from "astro/config";
-import starlight from "@astrojs/starlight";
-import vercel from "@astrojs/vercel/static";
 import sitemap from "@astrojs/sitemap";
+import starlight from "@astrojs/starlight";
+import { defineConfig } from "astro/config";
 const site = "https://sizzle.lazebny.io/";
 
 // https://astro.build/config
 export default defineConfig({
   site,
   output: "static",
-  adapter: vercel({
-    webAnalytics: {
-      enabled: true,
-    },
-    speedInsights: {
-      enabled: true,
-    },
-    imageService: true,
-  }),
   integrations: [
     starlight({
       title: "Sizzle Starter",
