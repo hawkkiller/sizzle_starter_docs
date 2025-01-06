@@ -34,52 +34,9 @@ export default defineConfig({
       },
       sidebar: [
         {
-          label: "Start Here",
-          items: [
-            {
-              label: "Introduction",
-              link: "/introduction",
-            },
-            {
-              label: "Getting Started",
-              link: "/getting-started",
-            },
-          ],
+          label: "Get Started",
+          link: "/get-started"
         },
-        {
-          label: "Essentials",
-          autogenerate: {
-            directory: "essentials",
-          },
-        },
-        {
-          label: "Storage",
-          items: [
-            {
-              label: "Local Database",
-              items: [
-                {
-                  label: "About the local database",
-                  link: "storage/database/about/",
-                },
-                {
-                  label: "Define Tables",
-                  link: "storage/database/define-tables/",
-                },
-                {
-                  label: "Accessing Data",
-                  link: "storage/database/accessing-data/",
-                },
-              ],
-            },
-          ],
-        },
-        {
-          label: "Misc",
-          autogenerate: {
-            directory: "misc",
-          },
-        }
       ],
       head: [
         {

@@ -1,0 +1,46 @@
+---
+title: Get Started
+description: Sizzle Starter is a production ready template for flutter applications.
+prev: false
+---
+
+## Introduction
+
+Sizzle Starter is a production-ready Flutter template packed with essential features to kickstart your app development:
+
+- Architecture & Folder Structure  
+- Dependency Initialization & Injection  
+- CI Setup with GitHub Actions  
+- App Settings, Theming, and Localization  
+- Database Management using Drift  
+- Linting Rules & Style Guides  
+
+It’s designed to save you time and ensure best practices from the start!
+
+## Quick Start
+
+1. **Clone the repo**  
+   Clone the Sizzle Starter repository and rename it to your project name.
+
+   ```bash
+   # Clone the repository
+   git clone https://github.com/hawkkiller/sizzle_starter.git
+
+   # Rename the project
+   mv sizzle_starter your_project_name 
+   ```
+2. **Install dependencies**  
+   Install the project dependencies using the following command:
+
+   ```bash
+   cd your_project_name
+
+   ## It is recommended to use "FVM" for managing flutter versions.
+   fvm use
+
+   ## Install dependencies
+   flutter pub get
+
+   ## Run code generation
+   dart run build_runner build --delete-conflicting-outputs
+   ```
