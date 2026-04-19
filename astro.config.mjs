@@ -27,6 +27,12 @@ export default defineConfig({
           label: "Get Started",
           link: "/get-started"
         },
+        {
+          label: "App Architecture",
+          autogenerate: {
+            directory: "app-architecture",
+          }
+        }
       ],
       head: [
         {

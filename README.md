@@ -10,7 +10,7 @@ npm run dev
 
 ## Docs (to be written)
 
-- Architecture & Folder Structure & State Management
+- Architecture & Folder Structure
 - Dependency Initialization & Injection
 - Error Handling & Logging
 - Monorepo & Pub Workspaces
